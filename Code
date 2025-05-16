@@ -1,0 +1,92 @@
+Python code for csv creation using pandas and faker
+```
+import pandas as pd
+import random
+from faker import Faker
+
+
+fake = Faker()
+
+
+real_us_cities_states = [
+    ("New York", "NY"), ("Los Angeles", "CA"), ("Chicago", "IL"), ("Houston", "TX"), ("Phoenix", "AZ"),
+    ("Philadelphia", "PA"), ("San Antonio", "TX"), ("San Diego", "CA"), ("Dallas", "TX"), ("San Jose", "CA"),
+    ("Austin", "TX"), ("Jacksonville", "FL"), ("Fort Worth", "TX"), ("Columbus", "OH"), ("Charlotte", "NC"),
+    ("Indianapolis", "IN"), ("San Francisco", "CA"), ("Seattle", "WA"), ("Denver", "CO"), ("Washington", "DC"),
+    ("Boston", "MA"), ("El Paso", "TX"), ("Nashville", "TN"), ("Detroit", "MI"), ("Oklahoma City", "OK"),
+    ("Portland", "OR"), ("Las Vegas", "NV"), ("Memphis", "TN"), ("Louisville", "KY"), ("Milwaukee", "WI"),
+    ("Albuquerque", "NM"), ("Tucson", "AZ"), ("Fresno", "CA"), ("Sacramento", "CA"), ("Mesa", "AZ"),
+    ("Atlanta", "GA"), ("Kansas City", "MO"), ("Colorado Springs", "CO"), ("Miami", "FL"), ("Raleigh", "NC"),
+    ("Virginia Beach", "VA"), ("Omaha", "NE"), ("Oakland", "CA"), ("Minneapolis", "MN"), ("Tulsa", "OK"),
+    ("Arlington", "TX"), ("Tampa", "FL"), ("New Orleans", "LA"), ("Wichita", "KS"), ("Cleveland", "OH"),
+    ("Bakersfield", "CA"), ("Honolulu", "HI"), ("Anchorage", "AK"), ("Boise", "ID"), ("Des Moines", "IA"),
+    ("Little Rock", "AR"), ("Madison", "WI"), ("Baton Rouge", "LA"), ("Lincoln", "NE"), ("Reno", "NV"),
+    ("Lexington", "KY"), ("Chandler", "AZ"), ("Lubbock", "TX"), ("Irving", "TX"), ("Durham", "NC"),
+    ("Chula Vista", "CA"), ("Fort Wayne", "IN"), ("St. Petersburg", "FL"), ("Laredo", "TX"),
+    ("Chesapeake", "VA"), ("Garland", "TX"), ("Scottsdale", "AZ"), ("Orlando", "FL"), ("Henderson", "NV"),
+    ("Riverside", "CA"), ("Santa Ana", "CA"), ("Cincinnati", "OH"), ("Stockton", "CA"), ("Pittsburgh", "PA"),
+    ("Anchorage", "AK"), ("Plano", "TX"), ("Lincoln", "NE"), ("Toledo", "OH"), ("St. Paul", "MN"),
+    ("Greensboro", "NC"), ("Newark", "NJ"), ("Buffalo", "NY"), ("Jersey City", "NJ"), ("St. Louis", "MO")
+]
+
+procedure_codes = ['99213', '99214', '93000', '99212', '36415', '81002', '81001', '93010']
+denial_types = ['None', 'Medical Necessity', 'Coverage Terminated', 'Prior Auth Required',
+                'Coordination of Benefits', 'Experimental Procedure', 'Duplicate Claim']
+claim_status_map = {
+    'None': 'Paid',
+    'Medical Necessity': 'Denied',
+    'Coverage Terminated': 'Denied',
+    'Prior Auth Required': 'Denied',
+    'Coordination of Benefits': 'Paid',
+    'Experimental Procedure': 'Denied',
+    'Duplicate Claim': 'Denied'
+}
+insurance_plans = ['PPO', 'HMO', 'POS']
+
+
+num_records = 5000
+records = []
+
+for i in range(1, num_records + 1):
+    denial_type = random.choice(denial_types)
+    claim_status = claim_status_map[denial_type]
+
+    # Add variation: 5% very high, 5% very low allowed amounts
+    rand = random.random()
+    if rand < 0.05:
+        allowed_amount = round(random.uniform(500, 1000), 2)
+    elif rand > 0.95:
+        allowed_amount = round(random.uniform(5, 20), 2)
+    else:
+        allowed_amount = round(random.uniform(30, 200), 2)
+
+    paid_amount = allowed_amount if claim_status == 'Paid' else 0.0
+    service_date = fake.date_between(start_date='-1y', end_date='today')
+
+    patient_city, patient_state = random.choice(real_us_cities_states)
+    provider_city, provider_state = random.choice(real_us_cities_states)
+
+    row = {
+        "Claim ID": f"C{i:05d}",
+        "Patient ID": f"P{random.randint(1000, 9999)}",
+        "Provider ID": f"PR{random.randint(500, 599)}",
+        "Service Date": service_date,
+        "Procedure Code": random.choice(procedure_codes),
+        "Allowed Amount": allowed_amount,
+        "Paid Amount": paid_amount,
+        "Denial Type": denial_type,
+        "Claim Status": claim_status,
+        "Patient City": patient_city,
+        "Patient State": patient_state,
+        "Provider City": provider_city,
+        "Provider State": provider_state,
+        "Insurance Plan": random.choice(insurance_plans)
+    }
+
+    records.append(row)
+
+
+df = pd.DataFrame(records)
+df.to_csv("health_insurance_claims_real_us_cities.csv", index=False)
+
+print(" File 'health_insurance_claims_real_us_cities.csv' has been created.")
